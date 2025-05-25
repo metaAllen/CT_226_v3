@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>首頁 - 三項都會累</title>
+    <style>
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            overflow: hidden;
+            background: linear-gradient(135deg, #232526 0%, #414345 100%);
+        }
+        body {
+            width: 100vw;
+            min-height: 100dvh;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+        }
+        .container {
+            width: 100%;
+            max-width: 420px;
+            height: 100dvh;
+            min-height: 0;
+            background: rgba(34, 40, 49, 0.98);
+            border-radius: 22px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+            overflow: hidden;
+            border: 1.5px solid rgba(255,255,255,0.08);
+            backdrop-filter: blur(4px);
+            box-sizing: border-box;
+            padding-top: env(safe-area-inset-top);
+            position: relative;
+        }
+        .header {
+            width: 100%;
+            background: linear-gradient(90deg, #12214e 0%, #078282 100%);
+            color: white;
+            text-align: center;
+            padding: 20px 0 16px 0;
+            font-size: 22px;
+            font-weight: bold;
+            letter-spacing: 2px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+        .content {
+            flex: 1;
+            width: 100%;
+            padding: 20px;
+            padding-bottom: 80px;
+            box-sizing: border-box;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        /* 自定義滾動條樣式 */
+        .content::-webkit-scrollbar {
+            width: 8px;
+        }
+        .content::-webkit-scrollbar-track {
+            background: rgba(255,255,255,0.05);
+            border-radius: 4px;
+        }
+        .content::-webkit-scrollbar-thumb {
+            background: rgba(0,188,212,0.3);
+            border-radius: 4px;
+        }
+        .content::-webkit-scrollbar-thumb:hover {
+            background: rgba(0,188,212,0.5);
+        }
+        /* Firefox 滾動條樣式 */
+        .content {
+            scrollbar-width: thin;
+            scrollbar-color: rgba(0,188,212,0.3) rgba(255,255,255,0.05);
+        }
+        .card {
+            background: rgba(255,255,255,0.05);
+            border-radius: 16px;
+            padding: 20px;
+            color: #fff;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+            border: 1px solid rgba(255,255,255,0.08);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+        }
+        .card h2 {
+            margin: 0 0 12px 0;
+            color: #00bcd4;
+            font-size: 18px;
+        }
+        .card p {
+            margin: 0;
+            color: #b0bec5;
+            font-size: 15px;
+            line-height: 1.6;
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-top: 12px;
+        }
+        .stat-item {
+            background: rgba(0,188,212,0.1);
+            border-radius: 12px;
+            padding: 12px;
+            text-align: center;
+        }
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #00bcd4;
+            margin-bottom: 4px;
+        }
+        .stat-label {
+            font-size: 12px;
+            color: #b0bec5;
+        }
+        .nav-buttons {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            display: flex;
+            justify-content: space-around;
+            padding: 10px;
+            background: rgba(34, 40, 49, 0.98);
+            border-top: 1px solid rgba(255,255,255,0.08);
+            backdrop-filter: blur(4px);
+            z-index: 1000;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        .nav-button {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: #b0bec5;
+            text-decoration: none;
+            font-size: 12px;
+            padding: 8px;
+            transition: color 0.3s;
+            flex: 1;
+            text-align: center;
+        }
+        .nav-button.active {
+            color: #00bcd4;
+        }
+        .nav-button img {
+            width: 24px;
+            height: 24px;
+            margin-bottom: 4px;
+        }
+        @media (max-width: 500px) {
+            .container {
+                max-width: 100vw;
+                height: 100dvh;
+                min-height: 0;
+                border-radius: 0;
+                padding-bottom: 60px;
+            }
+            .nav-buttons {
+                max-width: 100vw;
+                border-radius: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">三項都會累</div>
+        <div class="content">
+            <div class="card">
+                <h2>今日訓練</h2>
+                <p id="todayTraining">載入中...</p>
+            </div>
+            <div class="card">
+                <h2>本週統計</h2>
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <div class="stat-value" id="weeklySwim">0</div>
+                        <div class="stat-label">游泳 (km)</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="weeklyBike">0</div>
+                        <div class="stat-label">騎車 (km)</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="weeklyRun">0</div>
+                        <div class="stat-label">跑步 (km)</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="weeklyTotal">0</div>
+                        <div class="stat-label">總計 (km)</div>
+                    </div>
+                </div>
+            </div>
+            <div class="card">
+                <h2>訓練目標</h2>
+                <p>完成 CT226 鐵人三項賽事</p>
+            </div>
+        </div>
+        <div class="nav-buttons">
+            <a href="index.html" class="nav-button active">
+                <img src="images/home.svg" alt="首頁">
+                <span>首頁</span>
+            </a>
+            <a href="stats.html" class="nav-button">
+                <img src="images/stats.svg" alt="統計">
+                <span>統計</span>
+            </a>
+            <a href="chat/chat_v5_CT226.html" class="nav-button">
+                <img src="images/chat.svg" alt="聊天">
+                <span>聊天</span>
+            </a>
+            <a href="membership/membership.html" class="nav-button">
+                <img src="images/user.svg" alt="會員">
+                <span>會員</span>
+            </a>
+            <a href="clendar/clendar.html" class="nav-button">
+                <img src="images/calendar.svg" alt="日曆">
+                <span>日曆</span>
+            </a>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // ====== 本地資料變動時自動同步 ======
+            function autoSyncPatch() {
+                const origSetItem = localStorage.setItem;
+                localStorage.setItem = function(key, value) {
+                    origSetItem.apply(this, arguments);
+                    if (localStorage.getItem('token')) syncToCloud();
+                };
+            }
+            autoSyncPatch();
+
+            // ====== 首次載入時自動同步雲端資料 ======
+            if (localStorage.getItem('token')) {
+                syncFromCloud();
+            }
+
+            // ====== 雲端同步 API ======
+            async function syncFromCloud() {
+                const token = localStorage.getItem('token');
+                if (!token) return;
+                const res = await fetch('http://localhost:3001/api/data', {
+                    headers: { 'Authorization': 'Bearer ' + token }
+                });
+                const { data } = await res.json();
+                if (data) {
+                    Object.keys(data).forEach(key => {
+                        localStorage.setItem(key, JSON.stringify(data[key]));
+                    });
+                }
+            }
+            async function syncToCloud() {
+                const token = localStorage.getItem('token');
+                if (!token) return;
+                const currentUser = localStorage.getItem('currentUser');
+                const calendarEvents = JSON.parse(localStorage.getItem(`calendarEvents_${currentUser}`) || '{}');
+                const schedules = JSON.parse(localStorage.getItem('schedules') || '[]');
+                await fetch('http://localhost:3001/api/data', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + token
+                    },
+                    body: JSON.stringify({ data: {
+                        [`calendarEvents_${currentUser}`]: calendarEvents,
+                        'schedules': schedules
+                    }})
+                });
+            }
+
+            // ====== 原本的今日訓練與統計 ======
+            function getTodayTraining() {
+                const today = new Date().toLocaleString('en-US', { weekday: 'long' });
+                const currentDate = new Date();
+                const startDate = new Date(currentDate.getFullYear(), 0, 1);
+                const days = Math.floor((currentDate - startDate) / (24 * 60 * 60 * 1000));
+                const weekNumber = Math.ceil((days + startDate.getDay() + 1) / 7);
+                const schedules = JSON.parse(localStorage.getItem('schedules') || '[]');
+                const currentWeekIndex = (weekNumber - 1) % schedules.length;
+                return schedules[currentWeekIndex]?.[today] || '今天休息';
+            }
+            function calculateWeeklyStats() {
+                const currentUser = localStorage.getItem('currentUser');
+                const events = JSON.parse(localStorage.getItem(`calendarEvents_${currentUser}`) || '{}');
+                const today = new Date();
+                const startOfWeek = new Date(today);
+                startOfWeek.setDate(today.getDate() - today.getDay());
+                let weeklySwim = 0;
+                let weeklyBike = 0;
+                let weeklyRun = 0;
+                for (let i = 0; i < 7; i++) {
+                    const date = new Date(startOfWeek);
+                    date.setDate(startOfWeek.getDate() + i);
+                    const dateKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+                    if (events[dateKey]) {
+                        events[dateKey].forEach(event => {
+                            switch(event.type) {
+                                case '游泳':
+                                    weeklySwim += Number(event.distance) || 0;
+                                    break;
+                                case '騎車':
+                                    weeklyBike += Number(event.distance) || 0;
+                                    break;
+                                case '跑步':
+                                    weeklyRun += Number(event.distance) || 0;
+                                    break;
+                            }
+                        });
+                    }
+                }
+                document.getElementById('weeklySwim').textContent = weeklySwim.toFixed(1);
+                document.getElementById('weeklyBike').textContent = weeklyBike.toFixed(1);
+                document.getElementById('weeklyRun').textContent = weeklyRun.toFixed(1);
+                document.getElementById('weeklyTotal').textContent = (weeklySwim + weeklyBike + weeklyRun).toFixed(1);
+            }
+            document.getElementById('todayTraining').textContent = getTodayTraining();
+            calculateWeeklyStats();
+            // 設置當前頁面的導航按鈕為激活狀態
+            const currentPath = window.location.pathname;
+            const navButtons = document.querySelectorAll('.nav-button');
+            navButtons.forEach(button => {
+                if (button.getAttribute('href') === currentPath) {
+                    button.classList.add('active');
+                }
+            });
+        });
+    </script>
+</body>
+</html> 
