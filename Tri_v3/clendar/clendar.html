@@ -430,7 +430,7 @@
       const syncGarmin = document.getElementById("syncGarmin");
 
       // 狀態管理
-      let events = JSON.parse(localStorage.getItem('calendarEvents') || '{}');
+      let events = {};
       let currentDate = new Date();
       let selectedDate = null;
       let selectedEvent = null;
@@ -444,18 +444,19 @@
         return `${y}-${m}-${d}`;
       };
 
-      // 檢查登入狀態
-      function checkLogin() {
-        const currentUser = localStorage.getItem('currentUser');
-        if (!currentUser) {
-          window.location.href = '../membership/membership.html';
-        }
+      // 取得目前登入用戶
+      function getCurrentUser() {
+        return localStorage.getItem('currentUser');
       }
 
       // 日曆渲染
       function renderCalendar() {
-        const currentUser = localStorage.getItem('currentUser');
-        events = JSON.parse(localStorage.getItem(`calendarEvents_${currentUser}`) || '{}');
+        const currentUser = getCurrentUser();
+        if (currentUser) {
+          events = JSON.parse(localStorage.getItem(`calendarEvents_${currentUser}`) || '{}');
+        } else {
+          events = {};
+        }
         calendar.innerHTML = '';
         const year = currentDate.getFullYear();
         const month = currentDate.getMonth();
@@ -583,7 +584,11 @@
 
       // 保存活動
       function saveEvent() {
-        const currentUser = localStorage.getItem('currentUser');
+        const currentUser = getCurrentUser();
+        if (!currentUser) {
+          alert('請先登入會員才能儲存活動！');
+          return;
+        }
         const type = activityType.value;
         const dist = parseFloat(distance.value) || 0;
         const dur = parseFloat(duration.value) || 0;
@@ -615,7 +620,11 @@
 
       // 刪除活動
       function deleteEvent() {
-        const currentUser = localStorage.getItem('currentUser');
+        const currentUser = getCurrentUser();
+        if (!currentUser) {
+          alert('請先登入會員才能刪除活動！');
+          return;
+        }
         if (selectedEvent && typeof selectedEventIdx === 'number') {
           events[selectedDate].splice(selectedEventIdx, 1);
           if (events[selectedDate].length === 0) delete events[selectedDate];
@@ -651,9 +660,6 @@
 
       // 初始化日曆
       renderCalendar();
-
-      // 初始化
-      checkLogin();
 
       // 設置當前頁面的導航按鈕為激活狀態
       const currentPage = window.location.pathname;
