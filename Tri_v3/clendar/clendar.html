@@ -430,7 +430,7 @@
       const syncGarmin = document.getElementById("syncGarmin");
 
       // 狀態管理
-      let events = {};
+      let events = JSON.parse(localStorage.getItem('calendarEvents') || '{}');
       let currentDate = new Date();
       let selectedDate = null;
       let selectedEvent = null;
@@ -444,18 +444,13 @@
         return `${y}-${m}-${d}`;
       };
 
-      // 取得目前登入用戶
-      function getCurrentUser() {
-        return localStorage.getItem('currentUser');
-      }
-
       // 日曆渲染
       function renderCalendar() {
-        const currentUser = getCurrentUser();
+        const currentUser = localStorage.getItem('currentUser');
         if (currentUser) {
           events = JSON.parse(localStorage.getItem(`calendarEvents_${currentUser}`) || '{}');
         } else {
-          events = {};
+          events = JSON.parse(localStorage.getItem('calendarEvents') || '{}');
         }
         calendar.innerHTML = '';
         const year = currentDate.getFullYear();
@@ -584,11 +579,7 @@
 
       // 保存活動
       function saveEvent() {
-        const currentUser = getCurrentUser();
-        if (!currentUser) {
-          alert('請先登入會員才能儲存活動！');
-          return;
-        }
+        const currentUser = localStorage.getItem('currentUser');
         const type = activityType.value;
         const dist = parseFloat(distance.value) || 0;
         const dur = parseFloat(duration.value) || 0;
@@ -613,23 +604,27 @@
           });
         }
 
-        localStorage.setItem(`calendarEvents_${currentUser}`, JSON.stringify(events));
+        if (currentUser) {
+          localStorage.setItem(`calendarEvents_${currentUser}`, JSON.stringify(events));
+        } else {
+          localStorage.setItem('calendarEvents', JSON.stringify(events));
+        }
         modal.classList.add('hidden');
         renderCalendar();
       }
 
       // 刪除活動
       function deleteEvent() {
-        const currentUser = getCurrentUser();
-        if (!currentUser) {
-          alert('請先登入會員才能刪除活動！');
-          return;
-        }
+        const currentUser = localStorage.getItem('currentUser');
         if (selectedEvent && typeof selectedEventIdx === 'number') {
           events[selectedDate].splice(selectedEventIdx, 1);
           if (events[selectedDate].length === 0) delete events[selectedDate];
         }
-        localStorage.setItem(`calendarEvents_${currentUser}`, JSON.stringify(events));
+        if (currentUser) {
+          localStorage.setItem(`calendarEvents_${currentUser}`, JSON.stringify(events));
+        } else {
+          localStorage.setItem('calendarEvents', JSON.stringify(events));
+        }
         modal.classList.add('hidden');
         renderCalendar();
       }
@@ -660,6 +655,9 @@
 
       // 初始化日曆
       renderCalendar();
+
+      // 初始化
+      // checkLogin(); // 讓未登入者也能使用日曆
 
       // 設置當前頁面的導航按鈕為激活狀態
       const currentPage = window.location.pathname;

@@ -566,15 +566,6 @@
                     'Monday': '放假',
                     'Tuesday': '游3800',
                     'Wednesday': '訓練台90分',
-                    'Thursday': '跑12 K',
-                    'Friday': '訓練台90分',
-                    'Saturday': '訓練台60分，再跑10 K。',
-                    'Sunday': '訓練台60分，再跑10 K。'
-                },
-                {
-                    'Monday': '放假',
-                    'Tuesday': '游3800',
-                    'Wednesday': '訓練台90分',
                     'Thursday': '訓練台60分，再跑10 K。',
                     'Friday': '放假',
                     'Saturday': '放假',
@@ -771,10 +762,19 @@
                 const m = String(today.getMonth() + 1).padStart(2, '0');
                 const d = String(today.getDate()).padStart(2, '0');
                 const dateKey = `${y}-${m}-${d}`;
-                let events = JSON.parse(localStorage.getItem(`calendarEvents_${currentUser}`) || '{}');
+                let events;
+                if (currentUser) {
+                    events = JSON.parse(localStorage.getItem(`calendarEvents_${currentUser}`) || '{}');
+                } else {
+                    events = JSON.parse(localStorage.getItem('calendarEvents') || '{}');
+                }
                 if (!events[dateKey]) events[dateKey] = [];
                 events[dateKey].push({ type: '跑步', distance: km, duration: 0 });
-                localStorage.setItem(`calendarEvents_${currentUser}`, JSON.stringify(events));
+                if (currentUser) {
+                    localStorage.setItem(`calendarEvents_${currentUser}`, JSON.stringify(events));
+                } else {
+                    localStorage.setItem('calendarEvents', JSON.stringify(events));
+                }
                 if (localStorage.getItem('token')) syncToCloud();
             }
 
@@ -785,10 +785,19 @@
                 const m = String(today.getMonth() + 1).padStart(2, '0');
                 const d = String(today.getDate()).padStart(2, '0');
                 const dateKey = `${y}-${m}-${d}`;
-                let events = JSON.parse(localStorage.getItem(`calendarEvents_${currentUser}`) || '{}');
+                let events;
+                if (currentUser) {
+                    events = JSON.parse(localStorage.getItem(`calendarEvents_${currentUser}`) || '{}');
+                } else {
+                    events = JSON.parse(localStorage.getItem('calendarEvents') || '{}');
+                }
                 if (!events[dateKey]) events[dateKey] = [];
                 events[dateKey].push({ type: '騎車', distance: km, duration: 0 });
-                localStorage.setItem(`calendarEvents_${currentUser}`, JSON.stringify(events));
+                if (currentUser) {
+                    localStorage.setItem(`calendarEvents_${currentUser}`, JSON.stringify(events));
+                } else {
+                    localStorage.setItem('calendarEvents', JSON.stringify(events));
+                }
                 if (localStorage.getItem('token')) syncToCloud();
             }
 
@@ -799,10 +808,19 @@
                 const m = String(today.getMonth() + 1).padStart(2, '0');
                 const d = String(today.getDate()).padStart(2, '0');
                 const dateKey = `${y}-${m}-${d}`;
-                let events = JSON.parse(localStorage.getItem(`calendarEvents_${currentUser}`) || '{}');
+                let events;
+                if (currentUser) {
+                    events = JSON.parse(localStorage.getItem(`calendarEvents_${currentUser}`) || '{}');
+                } else {
+                    events = JSON.parse(localStorage.getItem('calendarEvents') || '{}');
+                }
                 if (!events[dateKey]) events[dateKey] = [];
                 events[dateKey].push({ type: '游泳', distance: km, duration: 0 });
-                localStorage.setItem(`calendarEvents_${currentUser}`, JSON.stringify(events));
+                if (currentUser) {
+                    localStorage.setItem(`calendarEvents_${currentUser}`, JSON.stringify(events));
+                } else {
+                    localStorage.setItem('calendarEvents', JSON.stringify(events));
+                }
                 if (localStorage.getItem('token')) syncToCloud();
             }
 

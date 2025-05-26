@@ -297,7 +297,12 @@
             }
             function calculateWeeklyStats() {
                 const currentUser = localStorage.getItem('currentUser');
-                const events = JSON.parse(localStorage.getItem(`calendarEvents_${currentUser}`) || '{}');
+                let events = {};
+                if (currentUser) {
+                    events = JSON.parse(localStorage.getItem(`calendarEvents_${currentUser}`) || '{}');
+                } else {
+                    events = JSON.parse(localStorage.getItem('calendarEvents') || '{}');
+                }
                 const today = new Date();
                 const startOfWeek = new Date(today);
                 startOfWeek.setDate(today.getDate() - today.getDay());
