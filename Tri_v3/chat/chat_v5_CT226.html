@@ -706,7 +706,10 @@
             function getTodaySchedule() {
                 const today = new Date().toLocaleString('en-US', { weekday: 'long' });
                 const currentWeekIndex = getCurrentWeekIndex();
-                return schedules[currentWeekIndex][today] || 'No training today.';
+                const schedule = schedules[currentWeekIndex][today] || 'No training today.';
+                // 寫入 localStorage 供首頁同步
+                try { localStorage.setItem('todaySchedule', schedule); } catch(e){}
+                return schedule;
             }
 
             function getWeeklySchedule() {
