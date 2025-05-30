@@ -306,14 +306,54 @@
       transition: color 0.3s;
       flex: 1;
       text-align: center;
+      position: relative;
     }
-    .nav-button.active {
-      color: #00bcd4;
-    }
+  
     .nav-button img {
       width: 24px;
       height: 24px;
       margin-bottom: 4px;
+    }
+    /* 聊天按鈕特殊樣式 */
+    .nav-button[href*="chat"] {
+      position: relative;
+      margin-top: 0;
+      min-height: 54px;
+    }
+    .nav-button[href*="chat"] img {
+      position: absolute;
+      top: -18px;
+
+      width: 38px;
+      height: 38px;
+      background: linear-gradient(135deg, #00bcd4 0%, #2196f3 100%);
+      border-radius: 50%;
+      padding: 8px;
+      box-shadow: 0 4px 12px rgba(0,188,212,0.3),
+                  inset 0 -2px 6px rgba(0,0,0,0.2),
+                  inset 0 2px 6px rgba(255,255,255,0.2);
+      transition: transform 0.3s, box-shadow 0.3s;
+    }
+    .nav-button[href*="chat"]:hover img {
+      transform: translateY(-2px) scale(1.05);
+      box-shadow: 0 6px 16px rgba(0,188,212,0.4),
+                  inset 0 -2px 6px rgba(0,0,0,0.2),
+                  inset 0 2px 6px rgba(255,255,255,0.2);
+    }
+    .nav-button span {
+      position: absolute;
+      bottom: 8px;
+      left: 0;
+      right: 0;
+      text-align: center;
+      color: #fff;
+    }
+    .nav-button:hover span,
+    .nav-button.active span {
+      color: #00bcd4;
+    }
+    .nav-button[href*="chat"] span {
+      font-weight: 600;
     }
     @media (max-width: 500px) {
       .calendar-container {
@@ -375,13 +415,13 @@
         <img src="../images/chat.svg" alt="聊天">
         <span>聊天</span>
       </a>
-      <a href="../membership/membership.html" class="nav-button">
-        <img src="../images/user.svg" alt="會員">
-        <span>會員</span>
-      </a>
       <a href="../clendar/clendar.html" class="nav-button active">
         <img src="../images/calendar.svg" alt="日曆">
         <span>日曆</span>
+      </a>
+      <a href="../membership/membership.html" class="nav-button">
+        <img src="../images/user.svg" alt="會員">
+        <span>會員</span>
       </a>
     </div>
   </div>
@@ -477,6 +517,23 @@
 
           // 顯示活動
           if (events[dateKey]) {
+            // 新增：渲染 type: "Event" 的白色標籤（可編輯/刪除多個Event）
+            const eventListForDay = events[dateKey].filter(ev => ev.type === 'Event');
+            if (eventListForDay.length > 0) {
+              const eventDiv = document.createElement('div');
+              eventDiv.className = 'event event-main';
+              eventDiv.style.background = '#fff';
+              eventDiv.style.color = '#222';
+              eventDiv.textContent = 'Event';
+              eventDiv.onclick = (e) => {
+                e.stopPropagation();
+                // 僅顯示所有Event（賽事名稱、活動類型、距離），不可編輯或刪除
+                alert(eventListForDay.map(ev =>
+                  `賽事名稱：${ev.name}\n活動類型：${ev.eventType || ev.type}\n日期：${dateKey}${ev.distance ? `\n距離：${ev.distance} km` : ''}`
+                ).join('\n\n'));
+              };
+              dayDiv.appendChild(eventDiv);
+            }
             // 合併同一天所有跑步資料
             let runTotal = 0;
             let runIdx = null;
@@ -537,7 +594,7 @@
             }
             // 其他活動（如有）
             events[dateKey].forEach((event, idx) => {
-              if (['跑步','騎車','游泳'].includes(event.type)) return;
+              if (["跑步","騎車","游泳","Event"].includes(event.type)) return;
               const eventDiv = document.createElement('div');
               eventDiv.className = 'event';
               eventDiv.innerHTML = `
@@ -660,12 +717,133 @@
       // checkLogin(); // 讓未登入者也能使用日曆
 
       // 設置當前頁面的導航按鈕為激活狀態
-      const currentPage = window.location.pathname;
+      const currentPath = window.location.pathname.replace(/^\/+/, '');
       document.querySelectorAll('.nav-button').forEach(button => {
-        if (button.getAttribute('href') === currentPage) {
+        const href = button.getAttribute('href').replace(/^\/+/, '');
+        if (
+          (href === 'index.html' && (currentPath === '' || currentPath.endsWith('index.html')))
+          || (href !== 'index.html' && currentPath.endsWith(href))
+        ) {
           button.classList.add('active');
+        } else {
+          button.classList.remove('active');
         }
       });
+
+      // ====== 新增：Event 編輯/刪除 Modal ======
+      function showEventEditModal(dateKey, eventList) {
+        // 建立一個簡單的彈窗
+        const modal = document.createElement('div');
+        modal.style.position = 'fixed';
+        modal.style.left = 0;
+        modal.style.top = 0;
+        modal.style.width = '100vw';
+        modal.style.height = '100vh';
+        modal.style.background = 'rgba(0,0,0,0.4)';
+        modal.style.zIndex = 9999;
+        modal.style.display = 'flex';
+        modal.style.alignItems = 'center';
+        modal.style.justifyContent = 'center';
+        modal.innerHTML = `<div style="background:#23272f;padding:28px 18px 18px 18px;border-radius:16px;min-width:260px;max-width:90vw;box-shadow:0 4px 24px rgba(0,0,0,0.18);color:#fff;">
+          <h3 style='color:#00bcd4;margin-top:0;'>編輯目標賽事</h3>
+          <div id='eventEditList'></div>
+          <button id='closeEventEditModal' style='margin-top:18px;width:100%;background:#888;color:#fff;border:none;padding:8px 0;border-radius:8px;'>關閉</button>
+        </div>`;
+        document.body.appendChild(modal);
+        const listDiv = modal.querySelector('#eventEditList');
+        listDiv.innerHTML = eventList.map((ev, idx) => `
+          <form data-idx='${idx}' style='margin-bottom:18px;border-bottom:1px solid #444;padding-bottom:10px;'>
+            <label>賽事名稱：<input name='name' value='${ev.name || ''}' style='width:90%;margin-bottom:6px;'/></label><br>
+            <label>活動類型：<select name='eventType' style='width:94%;margin-bottom:6px;'>
+              <option value='鐵人三項' ${ev.eventType==='鐵人三項'?'selected':''}>鐵人三項</option>
+              <option value='游泳' ${ev.eventType==='游泳'?'selected':''}>游泳</option>
+              <option value='騎車' ${ev.eventType==='騎車'?'selected':''}>騎車</option>
+              <option value='跑步' ${ev.eventType==='跑步'?'selected':''}>跑步</option>
+              <option value='越野跑' ${ev.eventType==='越野跑'?'selected':''}>越野跑</option>
+              <option value='其他' ${ev.eventType==='其他'?'selected':''}>其他</option>
+            </select></label><br>
+            <label>距離(km)：<input name='distance' type='number' min='0' step='0.1' value='${ev.distance || ''}' style='width:60px;'/></label><br>
+            <button type='submit' style='margin-top:6px;background:#00bcd4;color:#fff;border:none;padding:6px 16px;border-radius:8px;'>儲存</button>
+            <button type='button' class='deleteEventBtn' style='margin-left:8px;background:#b71c1c;color:#fff;border:none;padding:6px 16px;border-radius:8px;'>刪除</button>
+          </form>
+        `).join('');
+        // 編輯/儲存
+        listDiv.querySelectorAll('form').forEach(form => {
+          form.onsubmit = function(e) {
+            e.preventDefault();
+            const idx = Number(form.getAttribute('data-idx'));
+            const name = form.name.value.trim();
+            const eventType = form.eventType.value;
+            const distance = parseFloat(form.distance.value) || 0;
+            // 更新 calendarEvents
+            const currentUser = localStorage.getItem('currentUser');
+            let calendarEvents = {};
+            if (currentUser) {
+              calendarEvents = JSON.parse(localStorage.getItem(`calendarEvents_${currentUser}`) || '{}');
+            } else {
+              calendarEvents = JSON.parse(localStorage.getItem('calendarEvents') || '{}');
+            }
+            const ev = calendarEvents[dateKey].filter(ev => ev.type === 'Event')[idx];
+            // 取得舊名稱
+            const oldName = ev.name;
+            ev.name = name;
+            ev.eventType = eventType;
+            ev.distance = distance;
+            // 同步更新 trainingGoals
+            let goals = JSON.parse(localStorage.getItem('trainingGoals') || '[]');
+            let found = false;
+            goals = goals.map(g => {
+              if (g.date === dateKey && g.name === oldName) {
+                found = true;
+                return { ...g, name, type: eventType, distance };
+              }
+              return g;
+            });
+            if (!found) {
+              // 若找不到，則新增一筆
+              goals.push({ name, date: dateKey, type: eventType, distance });
+            }
+            localStorage.setItem('trainingGoals', JSON.stringify(goals));
+            if (currentUser) {
+              localStorage.setItem(`calendarEvents_${currentUser}`, JSON.stringify(calendarEvents));
+            } else {
+              localStorage.setItem('calendarEvents', JSON.stringify(calendarEvents));
+            }
+            renderCalendar();
+            modal.remove();
+          };
+          // 刪除
+          form.querySelector('.deleteEventBtn').onclick = function() {
+            const idx = Number(form.getAttribute('data-idx'));
+            // 刪除 calendarEvents
+            const currentUser = localStorage.getItem('currentUser');
+            let calendarEvents = {};
+            if (currentUser) {
+              calendarEvents = JSON.parse(localStorage.getItem(`calendarEvents_${currentUser}`) || '{}');
+            } else {
+              calendarEvents = JSON.parse(localStorage.getItem('calendarEvents') || '{}');
+            }
+            const ev = calendarEvents[dateKey].filter(ev => ev.type === 'Event')[idx];
+            const oldName = ev.name;
+            calendarEvents[dateKey] = calendarEvents[dateKey].filter((ev, i) => !(ev.type === 'Event' && i === idx));
+            if (calendarEvents[dateKey].length === 0) delete calendarEvents[dateKey];
+            // 刪除 trainingGoals
+            let goals = JSON.parse(localStorage.getItem('trainingGoals') || '[]');
+            goals = goals.filter(g => !(g.date === dateKey && g.name === oldName));
+            localStorage.setItem('trainingGoals', JSON.stringify(goals));
+            if (currentUser) {
+              localStorage.setItem(`calendarEvents_${currentUser}`, JSON.stringify(calendarEvents));
+            } else {
+              localStorage.setItem('calendarEvents', JSON.stringify(calendarEvents));
+            }
+            renderCalendar();
+            modal.remove();
+          };
+        });
+        // 關閉
+        modal.querySelector('#closeEventEditModal').onclick = () => modal.remove();
+        modal.onclick = (e) => { if (e.target === modal) modal.remove(); };
+      }
     });
   </script>
 </body>
